@@ -334,7 +334,6 @@ class DiscourseChat::ChatController < DiscourseChat::ChatBaseController
       guardian = Guardian.new(user)
       if guardian.can_chat?(user) && guardian.can_see_chat_channel?(@chat_channel)
         data = {
-          message: 'chat.invitation_notification',
           chat_channel_id: @chat_channel.id,
           chat_channel_title: @chat_channel.title(user),
           invited_by_username: current_user.username,

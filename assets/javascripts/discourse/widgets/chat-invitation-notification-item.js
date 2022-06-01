@@ -13,7 +13,7 @@ createWidgetFrom(DefaultNotificationItem, "chat-invitation-notification-item", {
   services: ["chat", "router"],
   text(data) {
     const username = formatUsername(data.invited_by_username);
-    return I18n.t(data.message, { username });
+    return I18n.t("notifications.chat_invitation_html", { username });
   },
 
   html(attrs) {

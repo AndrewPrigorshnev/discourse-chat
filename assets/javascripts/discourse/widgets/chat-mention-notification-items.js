@@ -10,14 +10,14 @@ import { formatUsername } from "discourse/lib/utilities";
 import { iconNode } from "discourse-common/lib/icon-library";
 
 const chatNotificationItem = {
-  services: ["chat", "router"],
+  services: ["chat"],
   text(notificationName, data) {
     const username = formatUsername(data.mentioned_by_username);
     const identifier = data.identifier ? `@${data.identifier}` : null;
     const i18nPrefix = data.is_direct_message_channel
       ? "notifications.popup.direct_message_chat_mention"
       : "notifications.popup.chat_mention";
-    const i18nSuffix = identifier ? "other" : "direct";
+    const i18nSuffix = identifier ? "other_html" : "direct_html";
 
     return I18n.t(`${i18nPrefix}.${i18nSuffix}`, {
       username,
