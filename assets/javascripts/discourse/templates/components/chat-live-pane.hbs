@@ -1,5 +1,5 @@
 {{#if (and fullPage includeHeader)}}
-  <div class="chat-full-page-header {{if previewing "previewing"}}">
+  <div class="chat-full-page-header {{if previewing 'previewing'}}">
     <div class="chat-channel-header-details">
       {{#if site.mobileView}}
         <div class="chat-full-page-header__left-actions">
@@ -41,36 +41,36 @@
   </div>
 {{/if}}
 
+{{d-progress-bar
+  key="chat-messages-loader"
+  isLoading=(or loadingMorePast loading loadingMoreFuture)
+}}
+
 {{chat-retention-reminder chatChannel=chatChannel}}
 
 <div class="chat-messages-scroll chat-messages-container">
-  {{#conditional-loading-spinner condition=this.loading}}
-    {{conditional-loading-spinner condition=this.loadingMoreFuture}}
 
-    {{#each this.messages as |message|}}
-      {{chat-message
-        message=message
-        canInteractWithChat=canInteractWithChat
-        details=this.details
-        chatChannel=chatChannel
-        setReplyTo=(action "setReplyTo")
-        replyMessageClicked=(action "replyMessageClicked")
-        editButtonClicked=(action "editButtonClicked")
-        selectingMessages=selectingMessages
-        onStartSelectingMessages=onStartSelectingMessages
-        onSelectMessage=onSelectMessage
-        bulkSelectMessages=bulkSelectMessages
-        fullPage=fullPage
-        afterReactionAdded=(action "reStickScrollIfNeeded")
-        isHovered=(eq message.id hoveredMessageId)
-        onHoverMessage=(action "onHoverMessage")
-        previewing=previewing
-        onSwitchChannel=onSwitchChannel
-      }}
-    {{/each}}
-
-    {{conditional-loading-spinner condition=this.loadingMorePast}}
-  {{/conditional-loading-spinner}}
+  {{#each this.messages as |message|}}
+    {{chat-message
+      message=message
+      canInteractWithChat=canInteractWithChat
+      details=this.details
+      chatChannel=chatChannel
+      setReplyTo=(action "setReplyTo")
+      replyMessageClicked=(action "replyMessageClicked")
+      editButtonClicked=(action "editButtonClicked")
+      selectingMessages=selectingMessages
+      onStartSelectingMessages=onStartSelectingMessages
+      onSelectMessage=onSelectMessage
+      bulkSelectMessages=bulkSelectMessages
+      fullPage=fullPage
+      afterReactionAdded=(action "reStickScrollIfNeeded")
+      isHovered=(eq message.id hoveredMessageId)
+      onHoverMessage=(action "onHoverMessage")
+      previewing=previewing
+      onSwitchChannel=onSwitchChannel
+    }}
+  {{/each}}
 
   {{#if allPastMessagesLoaded}}
     <div class="all-loaded-message">

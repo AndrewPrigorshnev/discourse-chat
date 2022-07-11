@@ -14,6 +14,7 @@ export default class ComputeFullPageHeight extends Component {
     window.addEventListener("resize", this._updateHeight, false);
     this.appEvents.on("composer:resized", this, "_updateHeight");
     this.appEvents.on("discourse:focus-changed", this, "_updateHeight");
+    document.addEventListener("touchmove", this.preventTouchMove, false);
 
     this._updateHeight();
   }
@@ -24,8 +25,13 @@ export default class ComputeFullPageHeight extends Component {
     window.removeEventListener("resize", this._updateHeight, false);
     this.appEvents.off("composer:resized", this, "_updateHeight");
     this.appEvents.off("discourse:focus-changed", this, "_updateHeight");
+    document.removeEventListener("touchmove", this.preventTouchMove, false);
 
     document.body.style.removeProperty("--full-page-chat-height");
+  }
+
+  preventTouchMove(event) {
+    event.preventDefault();
   }
 
   @bind

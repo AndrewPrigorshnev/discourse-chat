@@ -688,6 +688,18 @@ export default Component.extend(TextareaTextManipulation, {
   },
 
   @action
+  onChatComposerFocusIn(target) {
+    target = document.querySelector(".chat-composer-input");
+    target.style.transform = "translateY(-99999px)";
+    target.focus();
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        target.style.transform = "";
+      });
+    });
+  },
+
+  @action
   resizeTextarea() {
     schedule("afterRender", () => {
       if (!this._textarea) {

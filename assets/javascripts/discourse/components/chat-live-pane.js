@@ -21,6 +21,7 @@ import { Promise } from "rsvp";
 import { resetIdle } from "discourse/lib/desktop-notifications";
 import { isTesting } from "discourse-common/config/environment";
 import { defaultHomepage } from "discourse/lib/utilities";
+import { capitalize } from "@ember/string";
 
 const MAX_RECENT_MSGS = 100;
 const STICKY_SCROLL_LENIENCE = 4;
@@ -243,13 +244,14 @@ export default Component.extend({
     const canLoadMore = loadingPast
       ? this.details.can_load_more_past
       : this.details.can_load_more_future;
-    const loadingMoreKey = `loadingMore${direction}`;
+    const loadingMoreKey = `loadingMore${capitalize(direction)}`;
     const loadingMore = this.get(loadingMoreKey);
 
     if (!canLoadMore || loadingMore || this.loading || !this.messages.length) {
       return;
     }
 
+    console.log(loadingMoreKey);
     this.set(loadingMoreKey, true);
     this.ignoreStickyScrolling = true;
 
@@ -295,6 +297,7 @@ export default Component.extend({
   },
 
   fillPaneAttempt(meta) {
+    return;
     // safeguard
     if (this.messages.length > 200) {
       return;
