@@ -62,6 +62,7 @@ export default Component.extend({
   _nextStagedMessageId: 0, // Iterate on every new message
   _lastSelectedMessage: null,
   targetMessageId: null,
+  hasNewMessages: null,
 
   chat: service(),
   router: service(),
@@ -116,7 +117,7 @@ export default Component.extend({
       this,
       "highlightOrFetchMessage"
     );
-    this._stopLastReadRunner();
+    this._cancelPendingReadUpdate();
 
     // don't need to removeEventListener from scroller as the DOM element goes away
     cancel(this.stickyScrollTimer);
@@ -154,8 +155,11 @@ export default Component.extend({
 
           if (!this.chatChannel.isDraft) {
             this.set("previewing", !Boolean(trackedChannel));
-            this._startLastReadRunner();
             this.loadDraftForChannel(this.chatChannel.id);
+
+            if (!isTesting()) {
+              this._updateLastReadMessage(0);
+            }
           }
         });
     }
@@ -618,8 +622,12 @@ export default Component.extend({
     if (atTop) {
       this._fetchMoreMessages(PAST);
       return;
-    } else if (Math.abs(this._scrollerEl.scrollTop) <= STICKY_SCROLL_LENIENCE) {
-      this._fetchMoreMessages(FUTURE);
+    } else {
+      this._updateLastReadMessage();
+
+      if (Math.abs(this._scrollerEl.scrollTop) <= STICKY_SCROLL_LENIENCE) {
+        this._fetchMoreMessages(FUTURE);
+      }
     }
 
     this._calculateStickScroll();
@@ -635,6 +643,10 @@ export default Component.extend({
         ? false
         : absoluteScrollTop / this._scrollerEl.offsetHeight > 0.67
     );
+
+    if (!this.showScrollToBottomBtn) {
+      this.set("hasNewMessages", false);
+    }
 
     if (shouldStick !== this.stickyScroll) {
       if (shouldStick) {
@@ -883,7 +895,7 @@ export default Component.extend({
 
   @bind
   _updateLastReadMessage(wait = READ_INTERVAL) {
-    cancel(this._updateReadTimer);
+    this._cancelPendingReadUpdate();
 
     if (this._selfDeleted) {
       return;
@@ -896,15 +908,23 @@ export default Component.extend({
           return;
         }
 
-        let messageId;
-        if (this.messages?.length) {
-          messageId = this.messages[this.messages.length - 1]?.id;
+        let latestUnreadMsgId = this.lastSendReadMessageId;
+        if (
+          this.messages?.length &&
+          this.messages[this.messages.length - 1].id > latestUnreadMsgId
+        ) {
+          latestUnreadMsgId = this._findNextUnreadMessage(
+            0,
+            this.messages.length - 1,
+            this.lastSendReadMessageId
+          );
         }
-        const hasUnreadMessage =
-          messageId && messageId > this.lastSendReadMessageId;
+
+        const hasUnreadMessages =
+          latestUnreadMsgId && latestUnreadMsgId > this.lastSendReadMessageId;
 
         if (
-          !hasUnreadMessage &&
+          !hasUnreadMessages &&
           this.currentUser.chat_channel_tracking_state[this.chatChannel.id]
             ?.unread_count > 0
         ) {
@@ -914,34 +934,69 @@ export default Component.extend({
 
         // Make sure new messages have come in. Do not keep pinging server with read updates
         // if no new messages came in since last read update was sent.
-        if (this._floatOpenAndFocused() && hasUnreadMessage) {
-          this.set("lastSendReadMessageId", messageId);
-          ajax(`/chat/${this.chatChannel.id}/read/${messageId}.json`, {
+        if (this._floatOpenAndFocused() && hasUnreadMessages) {
+          this.set("lastSendReadMessageId", latestUnreadMsgId);
+          ajax(`/chat/${this.chatChannel.id}/read/${latestUnreadMsgId}.json`, {
             method: "PUT",
-          }).catch(() => {
-            this._stopLastReadRunner();
           });
         }
-
-        this._updateLastReadMessage();
       },
       wait
     );
+  },
+
+  // Recursive binary search to find an unread message in the viewport.
+  _findNextUnreadMessage(start, end, lastReadMessageId) {
+    if (end < start) {
+      return this.messages[end]?.id;
+    }
+
+    const candidateIdx = Math.round((start + end) / 2);
+    const unreadCandidateId = this.messages[candidateIdx]?.id;
+
+    if (!unreadCandidateId) {
+      return this.messages[end]?.id;
+    }
+
+    if (unreadCandidateId > lastReadMessageId) {
+      const messageElem = document.querySelector(
+        `.chat-message-container[data-id="${unreadCandidateId}"]`
+      );
+
+      if (this._messageVisible(messageElem)) {
+        return unreadCandidateId;
+      } else {
+        // Right half but not visible yet. Keep searching.
+        return this._findNextUnreadMessage(
+          start,
+          candidateIdx - 1,
+          lastReadMessageId
+        );
+      }
+    } else {
+      // Wrong half. Look in the rest of the array
+      return this._findNextUnreadMessage(
+        candidateIdx + 1,
+        end,
+        lastReadMessageId
+      );
+    }
+  },
+
+  _messageVisible(message) {
+    const { bottom, height, top } = message.getBoundingClientRect();
+    const containerRect = this._scrollerEl.getBoundingClientRect();
+
+    return top <= containerRect.top
+      ? containerRect.top - top <= height
+      : bottom - containerRect.bottom <= height;
   },
 
   _floatOpenAndFocused() {
     return userPresent() && this.expanded && !this.floatHidden;
   },
 
-  _startLastReadRunner() {
-    if (!isTesting()) {
-      next(this, () => {
-        this._updateLastReadMessage(0);
-      });
-    }
-  },
-
-  _stopLastReadRunner() {
+  _cancelPendingReadUpdate() {
     cancel(this._updateReadTimer);
   },
 
@@ -1356,7 +1411,11 @@ export default Component.extend({
   _subscribeToUpdates(channelId) {
     this._unsubscribeToUpdates(channelId);
     this.messageBus.subscribe(`/chat/${channelId}`, (busData) => {
-      this.handleMessage(busData);
+      if (!this.details.can_load_more_future || busData.type !== "sent") {
+        this.handleMessage(busData);
+      } else {
+        this.set("hasNewMessages", true);
+      }
     });
   },
 
