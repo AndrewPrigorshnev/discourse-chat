@@ -1,11 +1,8 @@
 import Component from "@ember/component";
-import ChatApi from "discourse/plugins/discourse-chat/discourse/lib/chat-api";
 import discourseComputed from "discourse-common/utils/decorators";
 import I18n from "I18n";
 import { action } from "@ember/object";
 import { inject as service } from "@ember/service";
-import { ajax } from "discourse/lib/ajax";
-import { popupAjaxError } from "discourse/lib/ajax-error";
 
 const NOTIFICATION_LEVELS = [
   { name: I18n.t("chat.notification_levels.never"), value: "never" },

@@ -1,4 +1,5 @@
 import Component from "@ember/component";
+import I18n from "I18n";
 import discourseComputed from "discourse-common/utils/decorators";
 import getURL from "discourse-common/lib/get-url";
 import { action } from "@ember/object";
