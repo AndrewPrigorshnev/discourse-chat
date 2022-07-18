@@ -49,4 +49,11 @@ export default class ChatChannelAboutView extends Component {
       })
       .catch(popupAjaxError);
   }
+
+  @action
+  afterMembershipToggle() {
+    this.chat.forceRefreshChannels().then(() => {
+      this.chat.openChannel(this.channel);
+    });
+  }
 }

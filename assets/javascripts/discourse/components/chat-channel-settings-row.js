@@ -37,42 +37,6 @@ export default Component.extend({
   },
 
   @action
-  follow() {
-    this.set("loading", true);
-    return ChatApi.followChatChannel(this.channel.id)
-      .then((membership) => {
-        this.channel.setProperties({
-          following: true,
-          muted: membership.muted,
-          desktop_notification_level: membership.desktop_notification_level,
-          mobile_notification_level: membership.mobile_notification_level,
-          memberships_count: membership.user_count,
-        });
-
-        this.chat.startTrackingChannel(this.channel);
-        this.set("loading", false);
-      })
-      .catch(popupAjaxError);
-  },
-
-  @action
-  unfollow() {
-    this.set("loading", true);
-    return ajax(`/chat/chat_channels/${this.channel.id}/unfollow`, {
-      method: "POST",
-    })
-      .then(() => {
-        this.channel.setProperties({
-          expanded: false,
-          following: false,
-        });
-        this.chat.stopTrackingChannel(this.channel);
-        this.set("loading", false);
-      })
-      .catch(popupAjaxError);
-  },
-
-  @action
   previewChannel() {
     this.chat.openChannel(this.channel);
   },

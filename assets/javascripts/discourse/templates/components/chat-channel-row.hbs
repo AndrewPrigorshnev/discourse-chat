@@ -11,9 +11,14 @@
   {{chat-channel-title channel=channel unreadIndicator=true}}
 
   {{#if options.leaveButton}}
-    {{chat-channel-leave-btn
-      channel=channel
-      onLeaveChannel=(action "onLeaveChannel")
-    }}
+    {{#unless site.mobileView}}
+      <ChatToggleMembershipBtn
+        @channel={{channel}}
+        @afterToggle={{action "afterMembershipToggle"}}
+        @leaveIcon="times"
+        @leaveClasses="btn-flat chat-channel-leave-btn"
+        @labelType="none"
+        @title={{this.leaveChatTitle}} />
+    {{/unless}}
   {{/if}}
 </div>

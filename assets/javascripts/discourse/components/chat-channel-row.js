@@ -89,8 +89,16 @@ export default Component.extend({
   },
 
   @action
-  onLeaveChannel() {
+  afterMembershipToggle() {
     this.set("isUnfollowing", true);
-    this.chat.unfollowChannel(this.channel);
+  },
+
+  @discourseComputed("channel.chatable_type")
+  leaveChatTitle() {
+    if (this.channel.isDirectMessageChannel) {
+      return I18n.t("chat.direct_messages.leave");
+    } else {
+      return I18n.t("chat.leave");
+    }
   },
 });

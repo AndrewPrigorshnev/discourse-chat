@@ -12,25 +12,6 @@ export default class ChatChannelPreviewCard extends Component {
 
   channel = null;
 
-  @action
-  onJoinChannel() {
-    return ChatApi.followChatChannel(this.channel.id)
-      .then((membership) => {
-        this.channel.setProperties({
-          following: true,
-          muted: membership.muted,
-          desktop_notification_level: membership.desktop_notification_level,
-          mobile_notification_level: membership.mobile_notification_level,
-          memberships_count: membership.user_count,
-        });
-
-        return this.chat
-          .forceRefreshChannels()
-          .then(() => this.chat.openChannel(this.channel));
-      })
-      .catch(popupAjaxError);
-  }
-
   @computed("channel.description")
   get hasDescription() {
     return !isEmpty(this.channel.description);
@@ -41,5 +22,12 @@ export default class ChatChannelPreviewCard extends Component {
     return `chat-channel-preview-card ${
       !this.hasDescription ? "chat-channel-preview-card--no-description" : ""
     }`.trim();
+  }
+
+  @action
+  afterMembershipToggle() {
+    this.chat.forceRefreshChannels().then(() => {
+      this.chat.openChannel(this.channel);
+    });
   }
 }
