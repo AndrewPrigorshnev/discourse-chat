@@ -1032,22 +1032,6 @@ export default Component.extend({
     return Promise.resolve();
   },
 
-  @action
-  joinChannel() {
-    return ChatApi.followChatChannel(this.chatChannel.id).then(() => {
-      this.setProperties({
-        id: null,
-      });
-      return this.chat.forceRefreshChannels().then(() => {
-        if (this._selfDeleted) {
-          return;
-        }
-        this.set("previewing", false);
-        this.appEvents.trigger("chat:refresh-channels");
-      });
-    });
-  },
-
   async _upsertChannelWithMessage(channel, message, uploads) {
     let promise;
 
