@@ -5,28 +5,42 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import ChatApi from "discourse/plugins/discourse-chat/discourse/lib/chat-api";
 import { action, computed } from "@ember/object";
 
-export default class ChatToggleMembershipBtn extends Component {
+export default class ToggleChannelMembershipButton extends Component {
   @service chat;
   tagName = "";
 
   channel = null;
-  afterToggle = null;
+  onToggle = null;
+  options = null;
+
   isLoading = false;
-  labelType = null;
-  joinTitle = null;
-  joinIcon = null;
-  joinClasses = "";
-  leaveTitle = null;
-  leaveIcon = null;
-  leaveClasses = "";
+
+  init() {
+    super.init(...arguments);
+    this.set(
+      "options",
+      Object.assign(
+        {
+          labelType: "normal",
+          joinTitle: I18n.t("chat.channel_settings.join_channel"),
+          joinIcon: "",
+          joinClass: "",
+          leaveTitle: I18n.t("chat.channel_settings.leave_channel"),
+          leaveIcon: "",
+          leaveClass: "",
+        },
+        this.options || {}
+      )
+    );
+  }
 
   @computed("channel.following")
   get label() {
-    if (this.labelType === "none") {
+    if (this.options.labelType === "none") {
       return "";
     }
 
-    if (this.labelType === "short") {
+    if (this.options.labelType === "short") {
       if (this.channel.following) {
         return I18n.t("chat.channel_settings.leave");
       } else {
@@ -49,19 +63,9 @@ export default class ChatToggleMembershipBtn extends Component {
       .then((membership) => {
         this.set("isLoading", false);
 
-        this.channel.setProperties({
-          following: true,
-          muted: membership.muted,
-          desktop_notification_level: membership.desktop_notification_level,
-          mobile_notification_level: membership.mobile_notification_level,
-          memberships_count: membership.user_count,
-        });
-
+        this.channel.updateMembership(true, membership);
         this.chat.startTrackingChannel(this.channel);
-
-        if (this.afterToggle) {
-          this.afterToggle();
-        }
+        this.onToggle?.();
       })
       .catch(popupAjaxError);
   }
@@ -74,17 +78,9 @@ export default class ChatToggleMembershipBtn extends Component {
       .then((membership) => {
         this.set("isLoading", false);
 
-        this.channel.setProperties({
-          expanded: false,
-          following: false,
-          memberships_count: membership.user_count,
-        });
-
+        this.channel.updateMembership(false, membership);
         this.chat.stopTrackingChannel(this.channel);
-
-        if (this.afterToggle) {
-          this.afterToggle();
-        }
+        this.onToggle?.();
       })
       .catch(popupAjaxError);
   }

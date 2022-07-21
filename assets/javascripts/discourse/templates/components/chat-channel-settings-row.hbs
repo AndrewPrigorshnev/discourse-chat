@@ -36,11 +36,9 @@
         label="chat.settings.preview"
       }}
     {{/unless}}
-    <ChatToggleMembershipBtn
+    <ToggleChannelMembershipButton
       @channel={{this.channel}}
-      @joinClasses="btn-primary"
-      @leaveClasses="btn-danger"
-      @labelType="short"
+      @options={{hash joinClass="btn-primary" leaveClass="btn-danger" labelType="short"}}
     />
   </div>
 </div>

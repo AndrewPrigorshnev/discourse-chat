@@ -4,10 +4,10 @@
     <p class="chat-channel-preview-card__description">{{channel.description}}</p>
   {{/if}}
   {{#if showJoinButton}}
-    <ChatToggleMembershipBtn
+    <ToggleChannelMembershipButton
       @channel={{this.channel}}
-      @afterToggle={{action "afterMembershipToggle"}}
-      @joinClasses="btn-primary"
+      @onToggle={{action "afterMembershipToggle"}}
+      @options={{hash joinClass="btn-primary"}}
     />
   {{/if}}
   <LinkTo @route="chat.browse" class="chat-channel-preview-card__browse-all">

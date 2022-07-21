@@ -27,7 +27,6 @@ en:
       cancel: "Cancel"
       cancel_reply: "Cancel reply"
       chat_channels: "Channels"
-      leave: "Leave channel"
       browse_all_channels: "Browse all channels"
       move_to_channel:
         title: "Move messages to channel"
@@ -43,7 +42,7 @@ en:
         open_channel: "Open channel"
         archive_channel: "Archive channel"
         delete_channel: "Delete channel"
-        join_channel: "Join"
+        join_channel: "Join channel"
         leave_channel: "Leave channel"
         join: "Join"
         leave: "Leave"

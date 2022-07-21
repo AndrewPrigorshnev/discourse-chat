@@ -99,7 +99,7 @@ export default Component.extend({
     if (this.channel.isDirectMessageChannel) {
       return I18n.t("chat.direct_messages.leave");
     } else {
-      return I18n.t("chat.leave");
+      return I18n.t("chat.channel_settings.leave_channel");
     }
   },
 });

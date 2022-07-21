@@ -71,12 +71,9 @@
 {{/if}}
 
 <div class="chat-form__section">
-  <ChatToggleMembershipBtn
+  <ToggleChannelMembershipButton
     @channel={{this.channel}}
-    @afterToggle={{action "afterMembershipToggle"}}
-    @joinClasses="btn-flat"
-    @leaveClasses="btn-flat"
-    @joinIcon="sign-in-alt"
-    @leaveIcon="sign-out-alt"
+    @onToggle={{action "afterMembershipToggle"}}
+    @options={{hash joinClass="btn-primary" leaveClass="btn-flat" joinIcon="sign-in-alt" leaveIcon="sign-out-alt"}}
   />
 </div>

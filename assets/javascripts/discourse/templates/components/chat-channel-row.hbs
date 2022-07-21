@@ -12,13 +12,15 @@
 
   {{#if options.leaveButton}}
     {{#unless site.mobileView}}
-      <ChatToggleMembershipBtn
+      <ToggleChannelMembershipButton
         @channel={{channel}}
-        @afterToggle={{action "afterMembershipToggle"}}
-        @leaveIcon="times"
-        @leaveClasses="btn-flat chat-channel-leave-btn"
-        @labelType="none"
-        @title={{this.leaveChatTitle}} />
+        @onToggle={{action "afterMembershipToggle"}}
+        @options={{hash
+          leaveClass="btn-flat chat-channel-leave-btn"
+          labelType="none"
+          leaveIcon="times"
+          leaveTitle=this.leaveChatTitle
+        }} />
     {{/unless}}
   {{/if}}
 </div>
