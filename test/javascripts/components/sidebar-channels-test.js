@@ -9,7 +9,7 @@ import {
 } from "../helpers/chat-stub";
 
 discourseModule(
-  "Discourse chat | Component | sidebar-channels",
+  "Discourse Chat | Component | sidebar-channels",
   function (hooks) {
     setupRenderingTest(hooks);
 
@@ -45,7 +45,7 @@ discourseModule(
       },
     });
 
-    componentTest("none of the conditions are fullfilled", {
+    componentTest("none of the conditions are fulfilled", {
       template: hbs`{{sidebar-channels}}`,
 
       beforeEach() {

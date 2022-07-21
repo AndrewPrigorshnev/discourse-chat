@@ -16,12 +16,13 @@ import userPresent from "discourse/lib/user-presence";
 import { A } from "@ember/array";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
-import { cancel, later, next, schedule } from "@ember/runloop";
+import { cancel, next, schedule } from "@ember/runloop";
+import discourseLater from "discourse-common/lib/later";
 import { inject as service } from "@ember/service";
 import { Promise } from "rsvp";
 import { resetIdle } from "discourse/lib/desktop-notifications";
-import { isTesting } from "discourse-common/config/environment";
 import { defaultHomepage } from "discourse/lib/utilities";
+import { isTesting } from "discourse-common/config/environment";
 
 const MAX_RECENT_MSGS = 100;
 const STICKY_SCROLL_LENIENCE = 4;
@@ -32,7 +33,7 @@ const PAST = "past";
 const FUTURE = "future";
 
 export default Component.extend({
-  classNameBindings: [":chat-live-pane", "sendingloading", "loading"],
+  classNameBindings: [":chat-live-pane", "sendingLoading", "loading"],
   chatChannel: null,
   fullPage: false,
   registeredChatChannelId: null, // ?Number
@@ -44,7 +45,7 @@ export default Component.extend({
 
   allPastMessagesLoaded: false,
   previewing: false,
-  sendingloading: false,
+  sendingLoading: false,
   selectingMessages: false,
   stickyScroll: true,
   stickyScrollTimer: null,
@@ -65,7 +66,7 @@ export default Component.extend({
   chat: service(),
   router: service(),
   chatComposerPresenceManager: service(),
-  chatWindowStore: service("chat-window-store"),
+  fullPageChat: service(),
 
   getCachedChannelDetails: null,
   clearCachedChannelDetails: null,
@@ -91,7 +92,7 @@ export default Component.extend({
     );
 
     this._scrollerEl = this.element.querySelector(".chat-messages-scroll");
-    this._scrollerEl.addEventListener("scroll", this.onScrollhandler, {
+    this._scrollerEl.addEventListener("scroll", this.onScrollHandler, {
       passive: true,
     });
     window.addEventListener("resize", this.onResizeHandler);
@@ -106,7 +107,7 @@ export default Component.extend({
 
     this.element
       .querySelector(".chat-messages-scroll")
-      ?.removeEventListener("scroll", this.onScrollhandler);
+      ?.removeEventListener("scroll", this.onScrollHandler);
 
     window.removeEventListener("resize", this.onResizeHandler);
 
@@ -179,7 +180,7 @@ export default Component.extend({
   },
 
   @bind
-  onScrollhandler() {
+  onScrollHandler() {
     cancel(this.stickyScrollTimer);
     this.stickyScrollTimer = discourseDebounce(this, this.onScroll, 100);
   },
@@ -199,6 +200,10 @@ export default Component.extend({
     this.set("loading", true);
 
     return this.chat.loadCookFunction(this.site.categories).then((cook) => {
+      if (this.isDestroying || this.isDestroyed) {
+        return;
+      }
+
       this.set("cook", cook);
 
       const findArgs = {
@@ -324,10 +329,10 @@ export default Component.extend({
       }
 
       this._fetchMoreMessages(PAST).then((messages) => {
-        let originalscrollTop = scroller.scrollTop;
+        let originalScrollTop = scroller.scrollTop;
 
         schedule("afterRender", () => {
-          scroller.scrollTo({ top: originalscrollTop });
+          scroller.scrollTo({ top: originalScrollTop });
           this.fillPaneAttempt(messages?.resultSetMeta);
         });
       });
@@ -556,27 +561,21 @@ export default Component.extend({
 
       if (opts.highlight) {
         messageEl.classList.add("highlighted");
+
         // Remove highlighted class, but keep `transition-slow` on for another 2 seconds
         // to ensure the background color fades smoothly out
         if (opts.highlight) {
-          later(
-            () => {
-              messageEl.classList.add("transition-slow");
-            },
-            isTesting() ? 0 : 2000
-          );
-          later(
-            () => {
-              messageEl.classList.remove("highlighted");
-              later(
-                () => {
-                  messageEl.classList.remove("transition-slow");
-                },
-                isTesting() ? 0 : 2000
-              );
-            },
-            isTesting() ? 0 : 3000
-          );
+          discourseLater(() => {
+            messageEl.classList.add("transition-slow");
+          }, 2000);
+
+          discourseLater(() => {
+            messageEl.classList.remove("highlighted");
+
+            discourseLater(() => {
+              messageEl.classList.remove("transition-slow");
+            }, 2000);
+          }, 3000);
         }
       }
     });
@@ -890,7 +889,7 @@ export default Component.extend({
       return;
     }
 
-    this._updateReadTimer = later(
+    this._updateReadTimer = discourseLater(
       this,
       () => {
         if (this._selfDeleted) {
@@ -950,11 +949,11 @@ export default Component.extend({
   sendMessage(message, uploads = []) {
     resetIdle();
 
-    if (this.sendingloading) {
+    if (this.sendingLoading) {
       return;
     }
 
-    this.set("sendingloading", true);
+    this.set("sendingLoading", true);
     this._setDraftForChannel(null);
 
     // TODO: all send message logic is due for massive refactoring
@@ -977,7 +976,7 @@ export default Component.extend({
         }
         this.set("previewing", false);
         this.set("loading", false);
-        this.set("sendingloading", false);
+        this.set("sendingLoading", false);
         this._resetAfterSend();
         this._stickScrollToBottom();
       });
@@ -1009,7 +1008,7 @@ export default Component.extend({
         if (this._selfDeleted) {
           return;
         }
-        this.set("sendingloading", false);
+        this.set("sendingLoading", false);
       });
 
     const stagedMessage = this._prepareSingleMessage(
@@ -1093,7 +1092,7 @@ export default Component.extend({
 
   @action
   editMessage(chatMessage, newContent, uploads) {
-    this.set("sendingloading", true);
+    this.set("sendingLoading", true);
     let data = {
       new_message: newContent,
       upload_ids: (uploads || []).map((upload) => upload.id),
@@ -1110,7 +1109,7 @@ export default Component.extend({
         if (this._selfDeleted) {
           return;
         }
-        this.set("sendingloading", false);
+        this.set("sendingLoading", false);
       });
   },
 
@@ -1240,25 +1239,17 @@ export default Component.extend({
     return this.messages.findIndex((m) => m.id === message.id);
   },
 
-  _goToChatableUrl() {
-    if (this.chatChannel.chatable_url) {
-      return this.router.transitionTo(this.chatChannel.chatable_url);
-    }
-    return false;
-  },
-
   @action
   onCloseFullScreen(channel) {
-    // update local storage
-    this.chatWindowStore.set("fullPage", false);
+    this.fullPageChat.isPreferred = false;
+    this.appEvents.trigger("chat:open-channel", channel);
 
-    // navigate to chatable url or homepage on compress
-    if (this._goToChatableUrl() === false) {
+    const previousRouteInfo = this.fullPageChat.exit();
+    if (previousRouteInfo) {
+      this._transitionToRoute(previousRouteInfo);
+    } else {
       this.router.transitionTo(`discovery.${defaultHomepage()}`);
     }
-
-    // re-open chat as docked window
-    this.appEvents.trigger("chat:open-channel", channel);
   },
 
   @action
@@ -1367,5 +1358,17 @@ export default Component.extend({
     this.messageBus.subscribe(`/chat/${channelId}`, (busData) => {
       this.handleMessage(busData);
     });
+  },
+
+  _transitionToRoute(routeInfo) {
+    const routeName = routeInfo.name;
+    let params = [];
+
+    do {
+      params = Object.values(routeInfo.params).concat(params);
+      routeInfo = routeInfo.parent;
+    } while (routeInfo);
+
+    this.router.transitionTo(routeName, ...params);
   },
 });

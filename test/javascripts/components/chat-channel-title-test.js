@@ -7,7 +7,7 @@ import {
   query,
 } from "discourse/tests/helpers/qunit-helpers";
 import hbs from "htmlbars-inline-precompile";
-import fabricate from "../helpers/fabricators";
+import fabricators from "../helpers/fabricators";
 import { CHATABLE_TYPES } from "discourse/plugins/discourse-chat/discourse/models/chat-channel";
 
 discourseModule(
@@ -21,7 +21,7 @@ discourseModule(
       beforeEach() {
         this.set(
           "channel",
-          fabricate("chat-channel", {
+          fabricators.chatChannel({
             chatable_type: CHATABLE_TYPES.categoryChannel,
           })
         );
@@ -45,7 +45,7 @@ discourseModule(
       beforeEach() {
         this.set(
           "channel",
-          fabricate("chat-channel", {
+          fabricators.chatChannel({
             chatable_type: CHATABLE_TYPES.categoryChannel,
             chatable: { read_restricted: true },
           })
@@ -63,7 +63,7 @@ discourseModule(
       beforeEach() {
         this.set(
           "channel",
-          fabricate("chat-channel", {
+          fabricators.chatChannel({
             chatable_type: CHATABLE_TYPES.categoryChannel,
             chatable: { read_restricted: false },
           })
@@ -79,12 +79,7 @@ discourseModule(
       template: hbs`{{chat-channel-title channel=channel}}`,
 
       beforeEach() {
-        this.set(
-          "channel",
-          fabricate("chat-channel", {
-            chatable_type: CHATABLE_TYPES.directMessageChannel,
-          })
-        );
+        this.set("channel", fabricators.directMessageChatChannel());
       },
 
       async test(assert) {
@@ -97,7 +92,7 @@ discourseModule(
         );
 
         assert.equal(
-          query(".chat-channel-title__name").innerText,
+          query(".chat-channel-title__name").innerText.trim(),
           user.username
         );
       },
@@ -107,16 +102,13 @@ discourseModule(
       template: hbs`{{chat-channel-title channel=channel}}`,
 
       beforeEach() {
-        const channel = fabricate("chat-channel", {
-          chatable_type: CHATABLE_TYPES.directMessageChannel,
-        });
+        const channel = fabricators.directMessageChatChannel();
 
         channel.chatable.users.push({
           id: 2,
           username: "joffrey",
           name: null,
-          avatar_template:
-            "https://avatars.discourse.org/v3/letter/t/31188e/{size}.png",
+          avatar_template: "/letter_avatar_proxy/v3/letter/t/31188e/{size}.png",
         });
 
         this.set("channel", channel);
@@ -126,11 +118,15 @@ discourseModule(
         const users = this.channel.chatable.users;
 
         assert.equal(
-          parseInt(query(".chat-channel-title__users-count").innerText, 10),
+          parseInt(
+            query(".chat-channel-title__users-count").innerText.trim(),
+            10
+          ),
           users.length
         );
+
         assert.equal(
-          query(".chat-channel-title__name").innerText,
+          query(".chat-channel-title__name").innerText.trim(),
           users.mapBy("username").join(", ")
         );
       },
@@ -140,7 +136,7 @@ discourseModule(
       template: hbs`{{chat-channel-title channel=channel unreadIndicator=unreadIndicator}}`,
 
       beforeEach() {
-        const channel = fabricate("chat-channel", {
+        const channel = fabricators.chatChannel({
           chatable_type: CHATABLE_TYPES.directMessageChannel,
         });
 
