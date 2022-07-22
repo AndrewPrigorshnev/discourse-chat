@@ -20,4 +20,9 @@ export default class ChatUserAvatar extends Component {
       !!users?.findBy("username", this.user?.username)
     );
   }
+
+  @computed("user.status")
+  get showStatus() {
+    return !!this.user.status;
+  }
 }
