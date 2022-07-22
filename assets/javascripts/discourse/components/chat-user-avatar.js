@@ -11,6 +11,16 @@ export default class ChatUserAvatar extends Component {
 
   avatarSize = "tiny";
 
+  didInsertElement() {
+    this._super(...arguments);
+    this.user.trackStatus();
+  }
+
+  willDestroyElement() {
+    this._super(...arguments);
+    this.user.stopTrackingStatus();
+  }
+
   @computed("chat.presenceChannel.users.[]", "user.{id,username}")
   get isOnline() {
     const users = this.chat.presenceChannel?.users;
