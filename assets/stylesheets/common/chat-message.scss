@@ -241,6 +241,17 @@
     width: 28px;
     height: 28px;
   }
+
+  .chat-message-avatar-status {
+    position: absolute;
+    left: 39px;
+    top: 29px;
+
+    .emoji {
+      width: 12px;
+      height: 12px;
+    }
+  }
 }
 
 .chat-message-container.highlighted .chat-message {
