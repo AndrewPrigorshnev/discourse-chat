@@ -11,16 +11,6 @@ export default class ChatUserAvatar extends Component {
 
   avatarSize = "tiny";
 
-  didInsertElement() {
-    this._super(...arguments);
-    this.user.trackStatus();
-  }
-
-  willDestroyElement() {
-    this._super(...arguments);
-    this.user.stopTrackingStatus();
-  }
-
   @computed("chat.presenceChannel.users.[]", "user.{id,username}")
   get isOnline() {
     const users = this.chat.presenceChannel?.users;
@@ -29,10 +19,5 @@ export default class ChatUserAvatar extends Component {
       !!users?.findBy("id", this.user?.id) ||
       !!users?.findBy("username", this.user?.username)
     );
-  }
-
-  @computed("user.status")
-  get showStatus() {
-    return !!this.user.status;
   }
 }

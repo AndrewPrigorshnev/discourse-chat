@@ -4,6 +4,9 @@
   {{else}}
     {{#if @message.user}}
       {{chat-user-avatar user=@message.user avatarSize="medium"}}
+      {{#if this.showStatus}}
+        {{emoji @message.user.status.emoji}}
+      {{/if}}
     {{else}}
       {{chat-emoji-avatar emoji=":wastebasket:"}}
     {{/if}}
