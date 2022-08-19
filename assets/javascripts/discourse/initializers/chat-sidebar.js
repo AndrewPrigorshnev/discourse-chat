@@ -227,6 +227,17 @@ export default {
               super(...arguments);
               this.channel = channel;
               this.chatService = chatService;
+
+              if (this.oneOnOneMessage) {
+                this.channel.chatable.users[0].trackStatus();
+              }
+            }
+
+            @bind
+            willDestroy() {
+              if (this.oneOnOneMessage) {
+                this.channel.chatable.users[0].stopTrackingStatus();
+              }
             }
 
             get name() {
